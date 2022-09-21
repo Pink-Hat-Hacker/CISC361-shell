@@ -2,6 +2,8 @@
 #include <signal.h>
 #include <stdio.h>
 
+int pid;
+
 void sig_handler(int signal); 
 
 int main( int argc, char **argv, char **envp )
