@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include "sh.h"
+#define LINEMAX 130
 
 int sh( int argc, char **argv, char **envp ){
 	char buffer[PROMPTMAX];
@@ -25,8 +26,8 @@ int sh( int argc, char **argv, char **envp ){
 	
 	uid = getuid();
 	password_entry = getpwuid(uid);               /* get passwd info */
-	homedir = password_entry->pw_dir;		/* Home directory to start
-						  out with*/
+	homedir = password_entry->pw_dir;
+
 	if ( (pwd = getcwd(NULL, PATH_MAX+1)) == NULL ){
 		perror("getcwd");
 		exit(2);
@@ -72,8 +73,21 @@ int sh( int argc, char **argv, char **envp ){
   return 0;
 } /* sh() */
 
-char *which(char *command, struct pathelement *pathlist )
-{
+char *which(char *command, struct pathelement *pathlist ) {
+	char buffer[LINEMAX];
+	while(pathlist != NULL) {
+		snprintf(buffer,LINEMAX,"%s/%s",pathlist->element,command);
+		if (access(buffer,X_OK) == -1) {
+			pathlist=pathlist->next;
+		} else {
+			int line_length = strlen(buffer);
+			char* ret_val = calloc(line_length+1,sizeof(char));
+			strncpy(ret_val,buffer,line_length);
+			return ret_val;
+		}
+	}
+	return NULL;
+
    /* loop through pathlist until finding command and return it.  Return
    NULL when not found. */
 
