@@ -70,7 +70,7 @@ char *which(char *command, struct pathelement *pathlist ) {
 		} else {
 			int line_length = strlen(buffer);
 			char* ret_val = calloc(line_length+1,sizeof(char));
-			strncpy(ret,buffer,line_length);
+			strncpy(ret_val,buffer,line_length);
 			return ret_val;
 		}
 	}
