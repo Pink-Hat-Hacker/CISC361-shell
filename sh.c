@@ -66,13 +66,13 @@ int sh( int argc, char **argv, char **envp ){
 			  	printf("%s\n", commandline);
 			  	break;
 		  	} else if (strcmp(commandline, "which") == 0) {
-			  	printf("%s\n", commandline);
+			  	printf("%s\n", command);
 				/**
 				 * Which:
 				 * - finding a command to execute
 				 **/
 		  	} else if (strcmp(commandline, "where") == 0) {
-			  	printf("%s\n", commandline);
+			  	printf("%s\n", command);
 				/**
 				 * Where:
 				 * - reports all instances of the command
@@ -82,7 +82,27 @@ int sh( int argc, char **argv, char **envp ){
 					commandpath = where(args[i], pathlist);
 					free(commandpath);
 				}
-		  	} else {
+		  	} else if (strcmp(command, "cd") == 0) {
+				printf("%s\n", command);
+				if (args[1] == NULL) {
+					strcpy(owd, pwd);
+					strcpy(pwd, homedir);
+					chdir(pwd);
+				} else if (strcmp(args[1], "-") == 0) {
+					p = pwd;
+					pwd = owd;
+					owd = p;
+					chdir(pwd);
+				}else if (args[1] != NULL && args[2] == NULL) {
+					if (chdir(args[1]) == -1) {
+						perror("Error ");
+					} else {
+						memset(owd, '\0', strlen(owd));
+						memcpy(owd, pwd, strlen(pwd));
+						getcwd(pwd, PATH_MAX+1);
+					}
+				}
+			} else {
 			  	return 0;
 		  	}
 	  	}
@@ -142,9 +162,17 @@ char *where(char *command, struct pathelement *pathlist ) {
 	return cp;
 } /* where() */
 
-void list ( char *dir )
-{
+void list ( char *dir ) {
   /* see man page for opendir() and readdir() and print out filenames for
   the directory passed */
+	DIR* directory = opendir(dir);
+	//https://pubs.opengroup.org/onlinepubs/009695399/basedefs/dirent.h.html
+	struct dirent* newFile;
+	if (directory) {
+		while((newFile = readdir(directory)) != NULL) {
+			printf("%s", newFile->d_name);
+		}
+	}
+	closedir(directory);
 } /* list() */
 
