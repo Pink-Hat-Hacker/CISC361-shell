@@ -176,3 +176,15 @@ void list ( char *dir ) {
 	closedir(directory);
 } /* list() */
 
+
+void printEnv(chat ** envp) {
+	int i =0;
+	while(envp[i]!=NULL) {
+		printf("%s\n",envp[i]);
+		i++;
+	}
+}
+
+void printExec(char * command) {
+	printf("\nExecuting built-in %s",command);
+}
