@@ -67,6 +67,10 @@ int sh( int argc, char **argv, char **envp ){
 			  	break;
 		  	} else if (strcmp(commandline, "which") == 0) {
 			  	printf("%s\n", command);
+				for (int i=1;args[i] != NULL; i++) {
+					commandpath = which(args[i],pathlist);
+					free(commandpath);
+				}
 				/**
 				 * Which:
 				 * - finding a command to execute
@@ -176,3 +180,15 @@ void list ( char *dir ) {
 	closedir(directory);
 } /* list() */
 
+
+void printEnv(chat ** envp) {
+	int i =0;
+	while(envp[i]!=NULL) {
+		printf("%s\n",envp[i]);
+		i++;
+	}
+}
+
+void printExec(char * command) {
+	printf("\nExecuting built-in %s",command);
+}
