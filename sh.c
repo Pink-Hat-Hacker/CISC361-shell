@@ -108,7 +108,7 @@ int sh( int argc, char **argv, char **envp ){
 				}
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
-				if (args[1] == NULL) {
+				if (args[0] == NULL) {
 					printf("Nothing in current directory");
 				} else {
 					int n = 1;
@@ -186,19 +186,28 @@ char *where(char *command, struct pathelement *pathlist ) {
 void list ( char *dir ) {
   /* see man page for opendir() and readdir() and print out filenames for
   the directory passed */
-	DIR* directory = opendir(dir);
-	//https://pubs.opengroup.org/onlinepubs/009695399/basedefs/dirent.h.html
+	/*DIR* directory = opendir(dir);
 	struct dirent* newFile;
 	if (directory) {
 		while((newFile = readdir(directory)) != NULL) {
 			printf("%s", newFile->d_name);
 		}
 	}
-	closedir(directory);
+	closedir(directory);*/
+	DIR *dr;
+	struct dirent *de;
+	dr = opendir(dir);
+	if (dr == NULL) {
+		printf("Nothing will open");
+	} else {
+		while((de = readdir(dr)) != NULL) {
+			printf("%s\n", de->d_name);
+		}
+	}
 } /* list() */
 
 
-void printEnv(chat ** envp) {
+void printEnv(char ** envp) {
 	int i =0;
 	while(envp[i]!=NULL) {
 		printf("%s\n",envp[i]);
