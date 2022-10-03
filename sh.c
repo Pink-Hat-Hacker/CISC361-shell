@@ -61,7 +61,7 @@ int sh( int argc, char **argv, char **envp ){
 		}
 
 	  /* check for each built in command and implement */
-	  	if(commandline != NULL) {
+	 	if(commandline != NULL) {
 		  	if (strcmp(commandline, "exit") == 0) {
 			  	printf("%s\n", commandline);
 			  	break;
@@ -102,6 +102,23 @@ int sh( int argc, char **argv, char **envp ){
 						getcwd(pwd, PATH_MAX+1);
 					}
 				}
+			} else if (strcmp(command, "list") == 0) {
+				printf("%s\n", command);
+				if (args[1] == NULL) {
+					printf("Nothing in current directory");
+				} else {
+					int n = 1;
+					while(args[n]) {
+						if (access(args[n], X_OK) == -1) {
+							//TODO: print error perror or something 
+							printf("\nError: problem with list\n");
+						} else {
+							printf("\n%s\n", args[n]);
+						        list(args[n]);
+						}
+						n++;
+					}
+				}	
 			} else {
 			  	return 0;
 		  	}
