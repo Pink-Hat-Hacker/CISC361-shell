@@ -65,13 +65,13 @@ int sh( int argc, char **argv, char **envp ){
 		  	if (strcmp(commandline, "exit") == 0) {
 			  	printf("%s\n", commandline);
 			  	break;
-		  	} else if (strcmp(commandline, "which") == 0) {
+		  	} else if (strcmp(command, "which") == 0) {
 			  	printf("%s\n", command);
 				/**
 				 * Which:
 				 * - finding a command to execute
 				 **/
-		  	} else if (strcmp(commandline, "where") == 0) {
+		  	} else if (strcmp(command, "where") == 0) {
 			  	printf("%s\n", command);
 				/**
 				 * Where:
