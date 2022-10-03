@@ -67,6 +67,10 @@ int sh( int argc, char **argv, char **envp ){
 			  	break;
 		  	} else if (strcmp(commandline, "which") == 0) {
 			  	printf("%s\n", command);
+				for (int i=1;args[i] != NULL; i++) {
+					commandpath = which(args[i],pathlist);
+					free(commandpath);
+				}
 				/**
 				 * Which:
 				 * - finding a command to execute
