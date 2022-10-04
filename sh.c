@@ -108,19 +108,14 @@ int sh( int argc, char **argv, char **envp ){
 				}
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
-				if (args[0] == NULL) {
+				if (args[1] == NULL) {
 					printf("Nothing in current directory");
 				} else {
-					int n = 1;
-					while(args[n]) {
-						if (access(args[n], X_OK) == -1) {
-							//TODO: print error perror or something 
-							printf("\nError: problem with list\n");
-						} else {
-							printf("\n%s\n", args[n]);
-						        list(args[n]);
+					for (int i = 0; i < MAXARGS; i++) {
+						if (args[i] != NULL) {
+							printf("%s:\n", args[i]);
+							list(args[i]);
 						}
-						n++;
 					}
 				}	
 			} else {
@@ -186,23 +181,16 @@ char *where(char *command, struct pathelement *pathlist ) {
 void list ( char *dir ) {
   /* see man page for opendir() and readdir() and print out filenames for
   the directory passed */
-	/*DIR* directory = opendir(dir);
-	struct dirent* newFile;
-	if (directory) {
-		while((newFile = readdir(directory)) != NULL) {
-			printf("%s", newFile->d_name);
-		}
-	}
-	closedir(directory);*/
-	DIR *dr;
+	DIR *dir2;
 	struct dirent *de;
-	dr = opendir(dir);
-	if (dr == NULL) {
-		printf("Nothing will open");
+	dir2 = opendir(dir);
+	if (dir2 == NULL) {
+		printf("Unable to read current directory\n");
 	} else {
-		while((de = readdir(dr)) != NULL) {
+		while((de = readdir(dir2))) {
 			printf("%s\n", de->d_name);
 		}
+		closedir(dir2);
 	}
 } /* list() */
 
