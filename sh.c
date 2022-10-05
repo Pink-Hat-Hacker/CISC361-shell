@@ -126,6 +126,24 @@ int sh( int argc, char **argv, char **envp ){
 				printf("%s\n", command);
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
+			} else if (strcmp(command, "kill") == 0) {
+				//base case
+				//- no arguments
+				//1 arg sends sigterm to second argument 
+				//convert string to num
+				//- atoi()
+				//3 args doing work
+				//4 args too many
+				printf("%s\n", command);
+				if (args[1] == NULL) {
+					printf("\n Not enough arguments to kill");
+				} else if (args[2] == NULL) {
+					//something about -1
+				} else if (args[4] == NULL) {
+					printf("\n Too many arguments");
+				} else{
+					//3
+				}
 			} else {
 			  	return 0;
 		  	}
@@ -193,7 +211,7 @@ void list ( char *dir ) {
 	struct dirent *de;
 	dir2 = opendir(dir);
 	if (dir2 == NULL) {
-		printf("Unable to read current directory\n");
+		printf("Current directory is unable to be read\n");
 	} else {
 		while((de = readdir(dir2))) {
 			printf("%s\n", de->d_name);
@@ -201,8 +219,6 @@ void list ( char *dir ) {
 		closedir(dir2);
 	}
 } /* list() */
-
-
 
 void printEnv(char ** envp) {
 	int i =0;
