@@ -14,6 +14,7 @@
 int sh( int argc, char **argv, char **envp ){
 	char buffer[PROMPTMAX];
 	char *ptr;
+//	extern char **envir;
 	char *prompt = calloc(PROMPTMAX, sizeof(char));
 	char *commandline = calloc(MAX_CANON, sizeof(char));
 	char *command, *arg, *commandpath, *p, *pwd, *owd;
@@ -126,6 +127,21 @@ int sh( int argc, char **argv, char **envp ){
 				} else {
 					strcpy(prompt,args[1]);
 				}
+			}else if (strcmp(command,"printenv")==0) {
+				printExec(command);
+				if (args[1] == NULL) {
+					printEnv(envir);
+				} else if (args[2] == NULL) {
+					printf("\n%s\n",getenv(args[1]));
+				} else {
+					printf("\nprintenv: Sorry, too many arguments :(\n");
+				}
+			}else if (strcmp(command,"setenv")==0) {
+				printExec(command);
+				if (args[1] == NULL) {
+					printEnv(evir);
+				} else if (args[2] == NULL && strcmp(args[1],"PATH") == 0 || strcmp(args[1],"HOME")==0) {
+				       	
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
 				if (args[1] == NULL) {
