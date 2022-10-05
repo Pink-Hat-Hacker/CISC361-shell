@@ -69,6 +69,7 @@ int sh( int argc, char **argv, char **envp ){
 			  	printf("%s\n", command);
 				for (int i=1;args[i] != NULL; i++) {
 					commandpath = which(args[i],pathlist);
+					printf("\n%s",commandpath);
 					free(commandpath);
 				}
 				/**
@@ -109,6 +110,21 @@ int sh( int argc, char **argv, char **envp ){
 						memcpy(owd, pwd, strlen(pwd));
 						getcwd(pwd, PATH_MAX+1);
 					}
+				}
+			} else if (strcmp(command,"prompt")==0) {
+				printExec(command);
+				if (args[1]==NULL) {
+					printf("\nPlease input promp prefect: ");
+					if (fgets(buffer,PROMPTMAX,stdin)!=NULL) {
+						int linelen=strlen(buffer);
+						if (buffer[linelen-1]=='\n') {
+							buffer[linelen-1]=0;
+						}
+						strtok(buffer," ");
+						strcpy(prompt,buffer);
+					}
+				} else {
+					strcpy(prompt,args[1]);
 				}
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
