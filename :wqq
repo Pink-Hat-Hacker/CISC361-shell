@@ -20,7 +20,7 @@ int sh( int argc, char **argv, char **envp ){
 	char **args = calloc(MAXARGS, sizeof(char*));
 	int uid, i, status, argsct, go = 1;
 	struct passwd *password_entry;
-	://developer.ibm.com/patterns/customer-loyalty-program-with-iks-saas-v2-fabric/char *homedir;
+	char *homedir;
 	struct pathelement *pathlist;
 	
 	uid = getuid();
@@ -181,7 +181,7 @@ void list ( char *dir ) {
 } /* list() */
 
 
-void printEnv(char ** envp) {
+void printEnv(chat ** envp) {
 	int i =0;
 	while(envp[i]!=NULL) {
 		printf("%s\n",envp[i]);
