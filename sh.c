@@ -61,11 +61,11 @@ int sh( int argc, char **argv, char **envp ){
 		}
 
 	  /* check for each built in command and implement */
-	  	if(commandline != NULL) {
+	 	if(commandline != NULL) {
 		  	if (strcmp(commandline, "exit") == 0) {
 			  	printf("%s\n", commandline);
 			  	break;
-		  	} else if (strcmp(commandline, "which") == 0) {
+		  	} else if (strcmp(command, "which") == 0) {
 			  	printf("%s\n", command);
 				for (int i=1;args[i] != NULL; i++) {
 					commandpath = which(args[i],pathlist);
@@ -75,7 +75,7 @@ int sh( int argc, char **argv, char **envp ){
 				 * Which:
 				 * - finding a command to execute
 				 **/
-		  	} else if (strcmp(commandline, "where") == 0) {
+		  	} else if (strcmp(command, "where") == 0) {
 			  	printf("%s\n", command);
 				/**
 				 * Where:
@@ -110,6 +110,21 @@ int sh( int argc, char **argv, char **envp ){
 						getcwd(pwd, PATH_MAX+1);
 					}
 				}
+			} else if (strcmp(command, "list") == 0) {
+				printf("%s\n", command);
+				if (args[1] == NULL) {
+					printf("Nothing in current directory");
+				} else {
+					for (int i = 0; i < MAXARGS; i++) {
+						if (args[i] != NULL) {
+							printf("%s:\n", args[i]);
+							list(args[i]);
+						}
+					}
+				}	
+			} else if(strcmp(command, "pid") == 0) {
+				printf("%s\n", command);
+				//call function
 			} else {
 			  	return 0;
 		  	}
@@ -173,15 +188,17 @@ char *where(char *command, struct pathelement *pathlist ) {
 void list ( char *dir ) {
   /* see man page for opendir() and readdir() and print out filenames for
   the directory passed */
-	DIR* directory = opendir(dir);
-	//https://pubs.opengroup.org/onlinepubs/009695399/basedefs/dirent.h.html
-	struct dirent* newFile;
-	if (directory) {
-		while((newFile = readdir(directory)) != NULL) {
-			printf("%s", newFile->d_name);
+	DIR *dir2;
+	struct dirent *de;
+	dir2 = opendir(dir);
+	if (dir2 == NULL) {
+		printf("Unable to read current directory\n");
+	} else {
+		while((de = readdir(dir2))) {
+			printf("%s\n", de->d_name);
 		}
+		closedir(dir2);
 	}
-	closedir(directory);
 } /* list() */
 
 
