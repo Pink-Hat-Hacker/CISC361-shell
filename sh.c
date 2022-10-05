@@ -124,7 +124,8 @@ int sh( int argc, char **argv, char **envp ){
 				}	
 			} else if(strcmp(command, "pid") == 0) {
 				printf("%s\n", command);
-				//call function
+				//https://man7.org/linux/man-pages/man2/getpid.2.html
+				printf("\nPID: %d", getpid());
 			} else {
 			  	return 0;
 		  	}
@@ -200,6 +201,7 @@ void list ( char *dir ) {
 		closedir(dir2);
 	}
 } /* list() */
+
 
 
 void printEnv(char ** envp) {
