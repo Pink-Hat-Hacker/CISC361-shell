@@ -20,7 +20,7 @@ int sh( int argc, char **argv, char **envp ){
 	char **args = calloc(MAXARGS, sizeof(char*));
 	int uid, i, status, argsct, go = 1;
 	struct passwd *password_entry;
-	://developer.ibm.com/patterns/customer-loyalty-program-with-iks-saas-v2-fabric/char *homedir;
+	char *homedir;
 	struct pathelement *pathlist;
 	
 	uid = getuid();
