@@ -13,7 +13,7 @@
 
 int sh( int argc, char **argv, char **envp ){
 	char buffer[PROMPTMAX];
-	
+	char *ptr;
 	char *prompt = calloc(PROMPTMAX, sizeof(char));
 	char *commandline = calloc(MAX_CANON, sizeof(char));
 	char *command, *arg, *commandpath, *p, *pwd, *owd;
@@ -86,6 +86,10 @@ int sh( int argc, char **argv, char **envp ){
 					commandpath = where(args[i], pathlist);
 					free(commandpath);
 				}
+			} else if (strcmp(command,"pwd")==0) {
+				ptr = getcwd(NULL,0);
+				printf("CWD: [%s]\n",ptr);
+				free(ptr);
 		  	} else if (strcmp(command, "cd") == 0) {
 				printf("%s\n", command);
 				if (args[1] == NULL) {
