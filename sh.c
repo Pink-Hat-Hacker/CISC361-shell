@@ -118,6 +118,9 @@ int sh( int argc, char **argv, char **envp ){
 						}
 					}
 				}	
+			} else if(strcmp(command, "pid") == 0) {
+				printf("%s\n", command);
+				//call function
 			} else {
 			  	return 0;
 		  	}
