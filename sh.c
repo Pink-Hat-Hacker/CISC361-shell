@@ -127,6 +127,16 @@ int sh( int argc, char **argv, char **envp ){
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
+				printf("%s\n", command);
+				if (args[0] == NULL) {
+				       printf("\n Not enough arguments");
+				} else if (args[1] == NULL) {
+					kill(atoi(args[1]), SIGTERM);
+				} else if (args[2] == NULL) {
+					if (strstr(args[1], "-") != NULL) {
+						kill(atoi(args[2]), atoi(args[1] + 1));
+					}
+				}
 				//base case
 				//- no arguments
 				//1 arg sends sigterm to second argument 
@@ -134,16 +144,6 @@ int sh( int argc, char **argv, char **envp ){
 				//- atoi()
 				//3 args doing work
 				//4 args too many
-				printf("%s\n", command);
-				if (args[1] == NULL) {
-					printf("\n Not enough arguments to kill");
-				} else if (args[2] == NULL) {
-					//something about -1
-				} else if (args[4] == NULL) {
-					printf("\n Too many arguments");
-				} else{
-					//3
-				}
 			} else {
 			  	return 0;
 		  	}
