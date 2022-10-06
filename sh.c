@@ -127,23 +127,39 @@ int sh( int argc, char **argv, char **envp ){
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
-				printf("%s\n", command);
-				if (args[0] == NULL) {
-				       printf("\n Not enough arguments");
-				} else if (args[1] == NULL) {
-					kill(atoi(args[1]), SIGTERM);
+				if (args[1] == NULL) {
+					printf("\nNo argument input for kill");
 				} else if (args[2] == NULL) {
-					if (strstr(args[1], "-") != NULL) {
-						kill(atoi(args[2]), atoi(args[1] + 1));
+					int temppid = -1;
+					sscanf(args[1], "%d", &temppid);
+					if (temppid != -1) {
+						if (kill(temppid, 15) == -1) {
+							perror("Error ");
+						}
+					} else {
+						printf("\nEntered invalid PID: Not a number!")
 					}
-				}
-				//base case
-				//- no arguments
-				//1 arg sends sigterm to second argument 
-				//convert string to num
-				//- atoi()
-				//3 args doing work
-				//4 args too many
+				} else if (args[3] == NULL) {
+					int temppid = -1;
+					int sig = 0;
+					sscanf(args[2], "%d", &temppid);
+					sscanf(args[1], "%d", &sig);
+					if (temppid != -1 && sig < 0) {
+						if(temppid == getpid() && sig == -1){
+							free(owd);
+							free(pwd);
+							free(prompt);
+							free(args);
+							free(commandline);
+							deletepath(&pathlist);
+							pathlist = NULL;
+						}
+						if (kill(temppid, abs(sig)) == -1) {
+							perror("Error ");
+						}
+					}else{
+						printf("\nInvalid arguments for kill");
+					}	
 			} else {
 			  	return 0;
 		  	}
