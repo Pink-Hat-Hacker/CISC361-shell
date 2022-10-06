@@ -127,25 +127,26 @@ int sh( int argc, char **argv, char **envp ){
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
+				//https://man7.org/linux/man-pages/man2/kill.2.html
 				if (args[1] == NULL) {
 					printf("\nNo argument inputted");
 				} else if (args[2] == NULL) {
-					int temppid = -1;
-					sscanf(args[1], "%d", &temppid);
-					if (temppid != -1) {
-						if (kill(temppid, 15) == -1) {
+					int t_id = -1;
+					sscanf(args[1], "%d", &t_id);
+					if (t_id != -1) {
+						if (kill(t_id, 15) == -1) {
 							printf("\nError");
 						}
 					} else {
 						printf("\nInvalid Argument! Not a number");
 					}
 				} else if (args[3] == NULL) {
-					int temppid = -1;
-					int sig = 0;
-					sscanf(args[2], "%d", &temppid);
-					sscanf(args[1], "%d", &sig);
-					if (temppid != -1 && sig < 0) {
-						if(temppid == getpid() && sig == -1){
+					int t_id = -1;
+					int signal = 0;
+					sscanf(args[2], "%d", &t_id);
+					sscanf(args[1], "%d", &signal);
+					if (t_id != -1 && signal < 0) {
+						if(t_id == getpid() && signal == -1){
 							free(owd);
 							free(pwd);
 							free(prompt);
@@ -153,7 +154,7 @@ int sh( int argc, char **argv, char **envp ){
 							free(commandline);
 							pathlist = NULL;
 						}
-						if (kill(temppid, abs(sig)) == -1) {
+						if (kill(t_id, abs(signal)) == -1) {
 							printf("\nERROR\n");
 						}
 					}else{
