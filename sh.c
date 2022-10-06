@@ -128,16 +128,16 @@ int sh( int argc, char **argv, char **envp ){
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
 				if (args[1] == NULL) {
-					printf("\nNo argument input for kill");
+					printf("\nNo argument inputted");
 				} else if (args[2] == NULL) {
 					int temppid = -1;
 					sscanf(args[1], "%d", &temppid);
 					if (temppid != -1) {
 						if (kill(temppid, 15) == -1) {
-							perror("Error ");
+							printf("\nError");
 						}
 					} else {
-						printf("\nEntered invalid PID: Not a number!")
+						printf("\nInvalid Argument! Not a number");
 					}
 				} else if (args[3] == NULL) {
 					int temppid = -1;
@@ -151,15 +151,15 @@ int sh( int argc, char **argv, char **envp ){
 							free(prompt);
 							free(args);
 							free(commandline);
-							deletepath(&pathlist);
 							pathlist = NULL;
 						}
 						if (kill(temppid, abs(sig)) == -1) {
-							perror("Error ");
+							printf("\nERROR\n");
 						}
 					}else{
-						printf("\nInvalid arguments for kill");
-					}	
+						printf("\nInvalid Arguments");
+					}
+				}	
 			} else {
 			  	return 0;
 		  	}
