@@ -161,7 +161,24 @@ int sh( int argc, char **argv, char **envp ){
 						printf("\nInvalid Arguments");
 					}
 				}	
-			} else {
+			} else { 
+				/* 
+				 * Wildcard: 
+				 * find command, 
+				 * attempt execution, 
+				 * * and ? handler
+				 * */
+				printf("Executing %s...", command);
+				int q_mark = findWildCard('?', args);
+				int s_mark = findWildCard('*', args);
+
+				if (strcmp(command, "ls") == 0 && q_mark != -1) {
+					return [];
+				} else if (strcmp(command, "ls") == 0 && s_mark != -1) {
+					return [];
+				} else {
+					return 0;
+				}	
 			  	return 0;
 		  	}
 	  	}
@@ -236,6 +253,18 @@ void list ( char *dir ) {
 		closedir(dir2);
 	}
 } /* list() */
+
+void findWildCard(char w_card, char **args) {
+	char *found;
+	for (int i = 0; i < MAXARGS; i++) {
+		found = strchr(args[i], wildcard);
+		if (p != NULL) {
+			return i;
+		}
+	}
+	return -1
+}
+
 
 void printEnv(char ** envp) {
 	int i =0;
