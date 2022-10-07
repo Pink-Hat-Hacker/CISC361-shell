@@ -129,7 +129,7 @@ int sh( int argc, char **argv, char **envp ){
 			} else if (strcmp(command, "kill") == 0) {
 				//https://man7.org/linux/man-pages/man2/kill.2.html
 				if (args[1] == NULL) {
-					printf("\nNo argument inputted");
+					printf("\nNot enough arguments for kill");
 				} else if (args[2] == NULL) {
 					int t_id = -1;
 					sscanf(args[1], "%d", &t_id);
