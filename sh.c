@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <glob.h>
 #include "sh.h"
 
 int sh( int argc, char **argv, char **envp ){
@@ -22,6 +23,7 @@ int sh( int argc, char **argv, char **envp ){
 	struct passwd *password_entry;
 	char *homedir;
 	struct pathelement *pathlist;
+	glob_t globbuf; //https://man7.org/linux/man-pages/man3/glob.3.html
 	
 	uid = getuid();
 	password_entry = getpwuid(uid);               /* get passwd info */
@@ -155,7 +157,7 @@ int sh( int argc, char **argv, char **envp ){
 							pathlist = NULL;
 						}
 						if (kill(t_id, abs(signal)) == -1) {
-							printf("\nERROR\n");
+							perror("ERROR");
 						}
 					}else{
 						printf("\nInvalid Arguments");
@@ -173,13 +175,26 @@ int sh( int argc, char **argv, char **envp ){
 				int s_mark = findWildCard('*', args);
 
 				if (strcmp(command, "ls") == 0 && q_mark != -1) {
-					return [];
+					glob_exec(q_mark, pathlist, args, status, commandpath, globbuf);	
 				} else if (strcmp(command, "ls") == 0 && s_mark != -1) {
-					return [];
+					glob_exec(s_mark, pathlist, args, status, commandpath, globbuf);
 				} else {
-					return 0;
+					commandpath = which(command, pathlist);
+					if (commandpath == NULL) {
+						printf("\nCommand not found");
+					} else {
+						pid = fork();
+						if (pid == 0) {
+							execve(commandpath, args, NULL);
+							exit(1);
+						} else {
+						       while (!(WIFEXITED(status) && WIFSIGNALED(status))) {
+							       waitpid(pid, &status, WUNTRACED);
+						       }
+						}
+						free(commandpath);
+					}
 				}	
-			  	return 0;
 		  	}
 	  	}
      /*  else  program to exec */
@@ -254,18 +269,40 @@ void list ( char *dir ) {
 	}
 } /* list() */
 
-void findWildCard(char w_card, char **args) {
+int findWildCard(char w_card, char **args) {
 	char *found;
 	for (int i = 0; i < MAXARGS; i++) {
-		found = strchr(args[i], wildcard);
-		if (p != NULL) {
+		found = strchr(args[i], w_card);
+		if (found != NULL) {
 			return i;
 		}
 	}
-	return -1
+	return -1;
 }
 
-
+void glob_exec(int char_ind, struct pathelement *pathlist, char **args, int status, char *commandpath, glob_t globbuf) {
+	globbuf.gl_offs = char_ind;
+	glob(args[char_ind], GLOB_DOOFFS, NULL, &globbuf);
+	for (int i = 0; i < char_ind; i++) {
+		globbuf.gl_pathv[i] = calloc(sizeof(char), strlen(args[i]) + 1);
+		strcpy(globbuf.gl_pathv[i], args[i]);
+	}
+	commandpath = which(globbuf.gl_pathv[0], pathlist);
+	if (commandpath == NULL) {
+		printf("\nCommand not found");
+	} else {
+		pid = fork();
+                if (pid == 0) {
+			execve(commandpath, globbuf.gl_pathv, NULL);
+                        exit(1);
+                } else {
+			while (!(WIFEXITED(status) && WIFSIGNALED(status))) {
+				waitpid(pid, &status, WUNTRACED);
+			}
+		}
+	}
+	free(commandpath);
+}
 void printEnv(char ** envp) {
 	int i =0;
 	while(envp[i]!=NULL) {
