@@ -188,23 +188,18 @@ int sh( int argc, char **argv, char **envp ){
 							execve(commandpath, args, NULL);
 							exit(1);
 						} else {
-						       while (!(WIFEXITED(status) && WIFSIGNALED(status))) {
+						       while (!WIFEXITED(status) && !WIFSIGNALED(status)) {
 							       waitpid(pid, &status, WUNTRACED);
 						       }
 						}
-						free(commandpath);
 					}
+					free(commandpath);
 				}	
 		  	}
 	  	}
-     /*  else  program to exec */
-       /* find it */
-       /* do fork(), execve() and waitpid() */
-
-      /* else */
-        /* fprintf(stderr, "%s: Command not found.\n", args[0]); */
-  }
-  return 0;
+	}
+	exit(0);
+	return 0;
 } /* sh() */
 
 char *which(char *command, struct pathelement *pathlist ) {
