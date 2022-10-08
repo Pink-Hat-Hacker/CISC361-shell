@@ -67,7 +67,14 @@ int sh( int argc, char **argv, char **envp ){
 		  	if (strcmp(command, "exit") == 0) {
 			  	printexecuting(command);
 			  	break;
-		  	} else if (strcmp(command, "which") == 0) {
+		  	} else if ((command[0] == '/') || (command[0] == '.') && (command[1] == '/') || ((command[1] == '.') && (command[2] == '/'))) {
+				if (access(command, X_OK) == -1) {
+					perror("Error");
+				} else {
+					printexecuting(command);
+					execcom(command, args, status);
+				}
+			} else if (strcmp(command, "which") == 0) {
 			  	printexecuting(command);
 				for (int i = 1; args[i] != NULL; i++) {
 					commandpath = which(args[i], pathlist);
@@ -173,31 +180,6 @@ int sh( int argc, char **argv, char **envp ){
 				 * attempt execution, 
 				 * * and ? handler
 				 * */
-				/*printf("Executing %s...", command);
-				int q_mark = findWildCard('?', args);
-				int s_mark = findWildCard('*', args);
-
-				if (strcmp(command, "ls") == 0 && q_mark != -1) {
-					glob_exec(q_mark, pathlist, args, status, commandpath, globbuf);	
-				} else if (strcmp(command, "ls") == 0 && s_mark != -1) {
-					glob_exec(s_mark, pathlist, args, status, commandpath, globbuf);
-				} else {
-					commandpath = which(command, pathlist);
-					if (commandpath == NULL) {
-						printf("\nCommand not found");
-					} else {
-						pid = fork();
-						if (pid == 0) {
-							execve(commandpath, args, NULL);
-							exit(1);
-						} else {
-						       while (!WIFEXITED(status) && !WIFSIGNALED(status)) {
-							       waitpid(pid, &status, WUNTRACED);
-						       }
-						}
-					}
-					free(commandpath);
-				}*/
 				if (which(args[0], pathlist) == NULL) {
 					printf("Command %s not found", args[0]);
 				} else {
@@ -224,6 +206,12 @@ int sh( int argc, char **argv, char **envp ){
 			free(args);
 	  	}
 	}
+	free(owd);
+	free(pwd);
+	free(args);
+	free(commandline);
+	free(command);
+	pathlist = NULL;
 	return 0;
 } /* sh() */
 
@@ -261,9 +249,11 @@ char *where(char *command, struct pathelement *pathlist ) {
 		} else if (access(pathBuffer, X_OK) != -1 && target == 0) {
 			target = 1;
 			int len = strlen(pathBuffer);
+			
 			cp = calloc(len + 1, sizeof(char));
 			strncpy(cp, pathBuffer, len);
 			printf("\n%s", cp);
+			
 			pathlist = pathlist->next;
 		} else if (access(pathBuffer, X_OK) != -1) {
 			printf("\n%s", pathBuffer);
@@ -291,6 +281,21 @@ void list ( char *dir ) {
 
 void printexecuting(char * command) {
 	printf("Executing built-in [%s] command\n", command);
+}
+
+void execcom(char *command, char ** args, int status) {
+	if (command == NULL) {
+		printf("\nCommand %s not found", args[0]);
+	} else {
+		if (fork() == 0) {
+			execve(command, args, NULL);
+			exit(0);
+		} else {
+			while (!WIFEXITED(status) && !WIFSIGNALED(status)) {
+				waitpid(pid, &status, WUNTRACED);
+			}
+		}
+	}
 }
 
 int findWildCard(char w_card, char **args) {
