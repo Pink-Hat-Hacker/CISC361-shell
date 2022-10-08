@@ -39,7 +39,7 @@ int sh( int argc, char **argv, char **envp ){
   	
 	/* Put PATH into a linked list */
   	pathlist = get_path();
-  	while ( go ){
+  	while ( go ) {
 	  	//print your prompt
 	  	printf("\n%s [%s]>", prompt, pwd);
 	  	/* get command line and process */
@@ -170,7 +170,7 @@ int sh( int argc, char **argv, char **envp ){
 				 * attempt execution, 
 				 * * and ? handler
 				 * */
-				printf("Executing %s...", command);
+				/*printf("Executing %s...", command);
 				int q_mark = findWildCard('?', args);
 				int s_mark = findWildCard('*', args);
 
@@ -194,11 +194,32 @@ int sh( int argc, char **argv, char **envp ){
 						}
 					}
 					free(commandpath);
-				}	
+				}*/
+				if (which(args[0], pathlist) == NULL) {
+					printf("Command %s not found", args[0]);
+				} else {
+					char *new_command;
+					new_command = args[0];
+					char *temp = where(args[0], pathlist);
+					args[0] = temp;
+
+					//fork, execve, waitpid
+					if (temp != NULL) {
+						if (fork() == 0) {
+							execve(temp, args, NULL);
+							free(new_command);
+							exit(1);
+						} else {
+							waitpid(pid, NULL, 0);
+						}
+					} else {
+						free(new_command);
+					}
+				}
 		  	}
+			free(args);
 	  	}
 	}
-	exit(0);
 	return 0;
 } /* sh() */
 
