@@ -64,13 +64,14 @@ int sh( int argc, char **argv, char **envp ){
 
 	  /* check for each built in command and implement */
 	 	if(commandline != NULL) {
-		  	if (strcmp(commandline, "exit") == 0) {
-			  	printf("%s\n", commandline);
+		  	if (strcmp(command, "exit") == 0) {
+			  	printexecuting(command);
 			  	break;
 		  	} else if (strcmp(command, "which") == 0) {
-			  	printf("%s\n", command);
-				for (int i=1;args[i] != NULL; i++) {
-					commandpath = which(args[i],pathlist);
+			  	printexecuting(command);
+				for (int i = 1; args[i] != NULL; i++) {
+					commandpath = which(args[i], pathlist);
+					printf("\n%s", commandpath);
 					free(commandpath);
 				}
 				/**
@@ -78,7 +79,7 @@ int sh( int argc, char **argv, char **envp ){
 				 * - finding a command to execute
 				 **/
 		  	} else if (strcmp(command, "where") == 0) {
-			  	printf("%s\n", command);
+			  	printexecuting(command);
 				/**
 				 * Where:
 				 * - reports all instances of the command
@@ -88,12 +89,13 @@ int sh( int argc, char **argv, char **envp ){
 					commandpath = where(args[i], pathlist);
 					free(commandpath);
 				}
-			} else if (strcmp(command,"pwd")==0) {
+			} else if (strcmp(command,"pwd") == 0) {
+				printexecuting(command);
 				ptr = getcwd(NULL,0);
 				printf("CWD: [%s]\n",ptr);
 				free(ptr);
 		  	} else if (strcmp(command, "cd") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				if (args[1] == NULL) {
 					strcpy(owd, pwd);
 					strcpy(pwd, homedir);
@@ -113,7 +115,7 @@ int sh( int argc, char **argv, char **envp ){
 					}
 				}
 			} else if (strcmp(command, "list") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				if (args[1] == NULL) {
 					printf("Nothing in current directory");
 				} else {
@@ -125,10 +127,11 @@ int sh( int argc, char **argv, char **envp ){
 					}
 				}	
 			} else if(strcmp(command, "pid") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
+				printexecuting(command);
 				//https://man7.org/linux/man-pages/man2/kill.2.html
 				if (args[1] == NULL) {
 					printf("\nNot enough arguments for kill");
@@ -206,6 +209,7 @@ int sh( int argc, char **argv, char **envp ){
 					//fork, execve, waitpid
 					if (temp != NULL) {
 						if (fork() == 0) {
+							printexecuting(new_command);
 							execve(temp, args, NULL);
 							free(new_command);
 							exit(1);
@@ -284,6 +288,10 @@ void list ( char *dir ) {
 		closedir(dir2);
 	}
 } /* list() */
+
+void printexecuting(char * command) {
+	printf("Executing built-in [%s] command\n", command);
+}
 
 int findWildCard(char w_card, char **args) {
 	char *found;
