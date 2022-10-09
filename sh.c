@@ -179,7 +179,43 @@ int sh( int argc, char **argv, char **envp ){
 				}	
 			} else if(strcmp(command, "pid") == 0) {
 				printf("%s\n", command);
-				//call function
+				//https://man7.org/linux/man-pages/man2/getpid.2.html
+				printf("\nPID: %d", getpid());
+			} else if (strcmp(command, "kill") == 0) {
+				//https://man7.org/linux/man-pages/man2/kill.2.html
+				if (args[1] == NULL) {
+					printf("\nNot enough arguments for kill");
+				} else if (args[2] == NULL) {
+					int t_id = -1;
+					sscanf(args[1], "%d", &t_id);
+					if (t_id != -1) {
+						if (kill(t_id, 15) == -1) {
+							printf("\nError");
+						}
+					} else {
+						printf("\nInvalid Argument! Not a number");
+					}
+				} else if (args[3] == NULL) {
+					int t_id = -1;
+					int signal = 0;
+					sscanf(args[2], "%d", &t_id);
+					sscanf(args[1], "%d", &signal);
+					if (t_id != -1 && signal < 0) {
+						if(t_id == getpid() && signal == -1){
+							free(owd);
+							free(pwd);
+							free(prompt);
+							free(args);
+							free(commandline);
+							pathlist = NULL;
+						}
+						if (kill(t_id, abs(signal)) == -1) {
+							printf("\nERROR\n");
+						}
+					}else{
+						printf("\nInvalid Arguments");
+					}
+				}	
 			} else {
 			  	return 0;
 		  	}
@@ -266,7 +302,7 @@ void list ( char *dir ) {
 	struct dirent *de;
 	dir2 = opendir(dir);
 	if (dir2 == NULL) {
-		printf("Unable to read current directory\n");
+		printf("Current directory is unable to be read\n");
 	} else {
 		while((de = readdir(dir2))) {
 			printf("%s\n", de->d_name);
@@ -274,7 +310,6 @@ void list ( char *dir ) {
 		closedir(dir2);
 	}
 } /* list() */
-
 
 void printEnv(char **envp) {
 	/*

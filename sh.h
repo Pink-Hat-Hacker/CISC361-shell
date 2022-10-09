@@ -2,7 +2,6 @@
 #include "get_path.h"
 
 extern int pid;
-char **envir;
 int sh( int argc, char **argv, char **envp);
 char *which(char *command, struct pathelement *pathlist);
 char *where(char *command, struct pathelement *pathlist);
