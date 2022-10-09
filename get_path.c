@@ -42,3 +42,17 @@ struct pathelement *get_path()
 
   return pathlist;
 } /* end get_path() */
+
+void pathdelete(struct pathelement ** head) {
+	struct pathelement * curr = *head;
+	struct pathelement *tmp;
+
+	if (curr !=NULL) {
+		free(curr->element);
+	}
+	while(curr!=NULL) {
+		tmp=curr;
+		curr=curr->next;
+		free(tmp);
+	}
+}	

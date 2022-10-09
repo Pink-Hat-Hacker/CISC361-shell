@@ -139,9 +139,29 @@ int sh( int argc, char **argv, char **envp ){
 			}else if (strcmp(command,"setenv")==0) {
 				printExec(command);
 				if (args[1] == NULL) {
-					printEnv(evir);
+					printEnv(envir);
 				} else if (args[2] == NULL && strcmp(args[1],"PATH") == 0 || strcmp(args[1],"HOME")==0) {
-				       	
+				       	printf("\nError: you've set either PATH or HOME to empty. Please try again.\n");
+				} else if (args[2] ==NULL) {
+					if (setenv(args[1],"",1)==-1) {
+						perror("Error: ");
+					}
+				} else if (args[3]==NULL) {
+					if (setenv(args[1],args[2],1)==-1) {
+						perror("Error: ");
+					} else {
+						if(strcmp(args[1],"PATH")==0) {
+							pathdelete(&pathlist);
+							pathlist=NULL;
+						} 
+						if (strcmp(args[1],"HOME")==0) {
+							homedir=args[2];
+						}
+					}
+				}
+				else {
+					printf("\nsetenv: Sorry, too many arguments. Please try again.");
+				}
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
 				if (args[1] == NULL) {

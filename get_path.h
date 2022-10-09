@@ -18,3 +18,5 @@ struct pathelement
   struct pathelement *next;		/* pointer to next node */
 };
 
+void pathdelete(struct pathelement ** head);
+
