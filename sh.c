@@ -14,6 +14,7 @@
 int sh( int argc, char **argv, char **envp ){
 	char buffer[PROMPTMAX];
 	char *ptr;
+	extern char **envir;
 	char *prompt = calloc(PROMPTMAX, sizeof(char));
 	char *commandline = calloc(MAX_CANON, sizeof(char));
 	char *command, *arg, *commandpath, *p, *pwd, *owd;
@@ -69,6 +70,7 @@ int sh( int argc, char **argv, char **envp ){
 			  	printf("%s\n", command);
 				for (int i=1;args[i] != NULL; i++) {
 					commandpath = which(args[i],pathlist);
+					printf("\n%s",commandpath);
 					free(commandpath);
 				}
 				/**
@@ -109,6 +111,59 @@ int sh( int argc, char **argv, char **envp ){
 						memcpy(owd, pwd, strlen(pwd));
 						getcwd(pwd, PATH_MAX+1);
 					}
+				}
+			} else if (strcmp(command,"prompt")==0) {
+				printExec(command);
+				if (args[1]==NULL) {
+					printf("\nPlease input promp prefect: ");
+					if (fgets(buffer,PROMPTMAX,stdin)!=NULL) {
+						int linelen=strlen(buffer);
+						if (buffer[linelen-1]=='\n') {
+							buffer[linelen-1]=0;
+						}
+						strtok(buffer," ");
+						strcpy(prompt,buffer);
+					}
+				} else {
+					strcpy(prompt,args[1]);
+				}
+			}else if (strcmp(command,"printenv")==0) {
+				printExec(command);
+				if (args[1] == NULL) {
+					//printf("\ntesting1\n");
+					printEnv(envp);
+					//printf("testing1 after calling printEnv\n");
+				} else if (args[2] == NULL) {
+					//printf("testing2\n");
+					printf("\n%s\n",getenv(args[1]));
+				} else {
+					printf("\nprintenv: Sorry, too many arguments :(\n");
+				}
+			}else if (strcmp(command,"setenv")==0) {
+				printExec(command);
+				if (args[1] == NULL) {
+					printEnv(envp);
+				} else if (args[2] == NULL && strcmp(args[1],"PATH") == 0 || strcmp(args[1],"HOME")==0) {
+				       	printf("\nError: you've set either PATH or HOME to empty. Please try again.\n");
+				} else if (args[2] ==NULL) {
+					if (setenv(args[1],"",1)==-1) {
+						perror("Error: ");
+					}
+				} else if (args[3]==NULL) {
+					if (setenv(args[1],args[2],1)==-1) {
+						perror("Error: ");
+					} else {
+						if(strcmp(args[1],"PATH")==0) {
+							pathdelete(&pathlist);
+							pathlist=NULL;
+						} 
+						if (strcmp(args[1],"HOME")==0) {
+							homedir=args[2];
+						}
+					}
+				}
+				else {
+					printf("\nsetenv: Sorry, too many arguments. Please try again.");
 				}
 			} else if (strcmp(command, "list") == 0) {
 				printf("%s\n", command);
@@ -172,10 +227,23 @@ int sh( int argc, char **argv, char **envp ){
       /* else */
         /* fprintf(stderr, "%s: Command not found.\n", args[0]); */
   }
+	free(owd);
+	free(pwd);
+	free(prompt);
+	free(args);
+	free(commandline);
+	pathdelete(&pathlist);
+	pathlist=NULL;
   return 0;
 } /* sh() */
 
 char *which(char *command, struct pathelement *pathlist ) {
+	/*
+	 * char *which: loops through the pathlist until it finds the specified command.
+	 * params: char *command: the specified command it is looking for, struct pathelement *pathlist: the pathlist that it is looping through
+	 * returns: the command if found as a char, but rturns NULL when it isn't found.
+	 * side effects: uses user input and calls snprintf and access (like it does in where).
+	 */
 	char buffer[LINEMAX];
 	while(pathlist != NULL) {
 		snprintf(buffer,LINEMAX,"%s/%s",pathlist->element,command);
@@ -197,6 +265,12 @@ char *which(char *command, struct pathelement *pathlist ) {
 
 char *where(char *command, struct pathelement *pathlist ) {
   /* similarly loop through finding all locations of command */
+	/* *where: loops through to find all locations of the command
+	 *  params: char *command: the command that is entered in, pathelement *pathlist: the certain element in the pathlist
+	 *  returns: the command path
+	 *  side effects: command  comes from user input, calls snprint (which is used to redirect the output of the print function onto the buffer, 
+	 *  access (which determines if the proccess being called can acces the specified file), and uses calloc to allocate memory for *cp.
+	 */
 	char pathBuffer[LINEMAX];
 	int target = 0;
 	char* cp;
@@ -237,7 +311,12 @@ void list ( char *dir ) {
 	}
 } /* list() */
 
-void printEnv(char ** envp) {
+void printEnv(char **envp) {
+	/*
+	 * printEnv: prints the environment (either a given one or the current one)
+	 * params: char **envp: the environment pointer
+	 * returns: nothing
+	 */
 	int i =0;
 	while(envp[i]!=NULL) {
 		printf("%s\n",envp[i]);
@@ -246,5 +325,9 @@ void printEnv(char ** envp) {
 }
 
 void printExec(char * command) {
+	/*
+	 * printExec: tells the user the given command is being executed.
+	 * params: char * command: the command that the user looks to use.
+	 */
 	printf("\nExecuting built-in %s",command);
 }
