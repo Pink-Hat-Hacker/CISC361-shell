@@ -14,7 +14,7 @@
 int sh( int argc, char **argv, char **envp ){
 	char buffer[PROMPTMAX];
 	char *ptr;
-//	extern char **envir;
+	extern char **envir;
 	char *prompt = calloc(PROMPTMAX, sizeof(char));
 	char *commandline = calloc(MAX_CANON, sizeof(char));
 	char *command, *arg, *commandpath, *p, *pwd, *owd;
@@ -130,8 +130,11 @@ int sh( int argc, char **argv, char **envp ){
 			}else if (strcmp(command,"printenv")==0) {
 				printExec(command);
 				if (args[1] == NULL) {
-					printEnv(envir);
+					//printf("\ntesting1\n");
+					printEnv(envp);
+					//printf("testing1 after calling printEnv\n");
 				} else if (args[2] == NULL) {
+					//printf("testing2\n");
 					printf("\n%s\n",getenv(args[1]));
 				} else {
 					printf("\nprintenv: Sorry, too many arguments :(\n");
@@ -139,7 +142,7 @@ int sh( int argc, char **argv, char **envp ){
 			}else if (strcmp(command,"setenv")==0) {
 				printExec(command);
 				if (args[1] == NULL) {
-					printEnv(envir);
+					printEnv(envp);
 				} else if (args[2] == NULL && strcmp(args[1],"PATH") == 0 || strcmp(args[1],"HOME")==0) {
 				       	printf("\nError: you've set either PATH or HOME to empty. Please try again.\n");
 				} else if (args[2] ==NULL) {
@@ -188,6 +191,13 @@ int sh( int argc, char **argv, char **envp ){
       /* else */
         /* fprintf(stderr, "%s: Command not found.\n", args[0]); */
   }
+	free(owd);
+	free(pwd);
+	free(prompt);
+	free(args);
+	free(commandline);
+	pathdelete(&pathlist);
+	pathlist=NULL;
   return 0;
 } /* sh() */
 
@@ -254,12 +264,15 @@ void list ( char *dir ) {
 } /* list() */
 
 
-void printEnv(char ** envp) {
+void printEnv(char **envp) {
 	int i =0;
+	//printf("testin\n");
 	while(envp[i]!=NULL) {
+		//printf("\ntesting loop\n");
 		printf("%s\n",envp[i]);
 		i++;
 	}
+	printf("testing after loop\n");
 }
 
 void printExec(char * command) {
