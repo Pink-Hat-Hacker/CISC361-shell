@@ -44,6 +44,11 @@ struct pathelement *get_path()
 } /* end get_path() */
 
 void pathdelete(struct pathelement ** head) {
+	/*
+	 * pathdelete: deletes the path
+	 * params: struct pathelement ** head: the head element of the path.
+	 * returns: none
+	 */
 	struct pathelement * curr = *head;
 	struct pathelement *tmp;
 

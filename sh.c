@@ -202,6 +202,12 @@ int sh( int argc, char **argv, char **envp ){
 } /* sh() */
 
 char *which(char *command, struct pathelement *pathlist ) {
+	/*
+	 * char *which: loops through the pathlist until it finds the specified command.
+	 * params: char *command: the specified command it is looking for, struct pathelement *pathlist: the pathlist that it is looping through
+	 * returns: the command if found as a char, but rturns NULL when it isn't found.
+	 * side effects: uses user input and calls snprintf and access (like it does in where).
+	 */
 	char buffer[LINEMAX];
 	while(pathlist != NULL) {
 		snprintf(buffer,LINEMAX,"%s/%s",pathlist->element,command);
@@ -223,6 +229,12 @@ char *which(char *command, struct pathelement *pathlist ) {
 
 char *where(char *command, struct pathelement *pathlist ) {
   /* similarly loop through finding all locations of command */
+	/* *where: loops through to find all locations of the command
+	 *  params: char *command: the command that is entered in, pathelement *pathlist: the certain element in the pathlist
+	 *  returns: the command path
+	 *  side effects: command  comes from user input, calls snprint (which is used to redirect the output of the print function onto the buffer, 
+	 *  access (which determines if the proccess being called can acces the specified file), and uses calloc to allocate memory for *cp.
+	 */
 	char pathBuffer[LINEMAX];
 	int target = 0;
 	char* cp;
@@ -265,16 +277,22 @@ void list ( char *dir ) {
 
 
 void printEnv(char **envp) {
+	/*
+	 * printEnv: prints the environment (either a given one or the current one)
+	 * params: char **envp: the environment pointer
+	 * returns: nothing
+	 */
 	int i =0;
-	//printf("testin\n");
 	while(envp[i]!=NULL) {
-		//printf("\ntesting loop\n");
 		printf("%s\n",envp[i]);
 		i++;
 	}
-	printf("testing after loop\n");
 }
 
 void printExec(char * command) {
+	/*
+	 * printExec: tells the user the given command is being executed.
+	 * params: char * command: the command that the user looks to use.
+	 */
 	printf("\nExecuting built-in %s",command);
 }
