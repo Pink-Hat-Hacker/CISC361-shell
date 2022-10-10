@@ -354,13 +354,14 @@ void execcom(char *command, char ** args, int status) {
 	if (command == NULL) {
 		printf("\nCommand %s not found", args[0]);
 	} else {
-		if (fork() == 0) {
+		pid = fork();
+		if (pid == 0) {
 			execve(command, args, NULL);
 			exit(0);
 		} else {
-			while (!WIFEXITED(status) && !WIFSIGNALED(status)) {
+			do {
 				waitpid(pid, &status, WUNTRACED);
-			}
+			}while(!WIFEXITED(status) && !WIFSIGNALED(status));
 		}
 	}
 }
