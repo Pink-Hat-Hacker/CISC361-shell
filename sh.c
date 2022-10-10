@@ -223,35 +223,34 @@ int sh( int argc, char **argv, char **envp ){
 						printf("\nInvalid Arguments");
 					}
 				}	
+			} else if (strstr(command, "*") != NULL) {
+				int star = findWildCard('*', args);
+				glob_exec(star, commandpath, pathlist, args, globbuf, status);
+				printf("star globs");
+			} else if (strstr(command, "?") != NULL) {
+				int quest = findWildCard('?', args);
+                                glob_exec(quest, commandpath, pathlist, args, globbuf, status);
+                                printf("question globs");
 			} else {
-				int q_mark = findWildCard('?', args);
-				int s_mark = findWildCard('*', args);
-				if (strcmp(command, "ls") == 0 && q_mark != -1) {
-					glob_exec(q_mark, commandpath, pathlist, args, globbuf, status);
-				} else if (strcmp(command, "ls") == 0  && s_mark != -1) {
-					glob_exec(s_mark, commandpath, pathlist, args, globbuf, status);
+				if (which(args[0], pathlist) == NULL) {
+					printf("Command %s not found", args[0]);
 				} else {
-					if (which(args[0], pathlist) == NULL) {
-						printf("Command %s not found", args[0]);
-					} else {
-						printexecuting(command);
-						char *new_command;
-						new_command = args[0];
-						char *temp = where(args[0], pathlist);
-						args[0] = temp;
+					printexecuting(command);
+					char *new_command;
+					new_command = args[0];
+					char *temp = where(args[0], pathlist);
+					args[0] = temp;
 					
-						if (temp != NULL) {
-							if (fork() == 0) {
-								printexecuting(new_command);
-								execve(temp, args, NULL);
-								free(new_command);
-								exit(1);
-							} else {
-								waitpid(pid, NULL, 0);
-							}
-						} else {
+					if (temp != NULL) {
+						if (fork() == 0) {
+							execve(temp, args, NULL);
 							free(new_command);
+							exit(1);
+						} else {
+							waitpid(pid, NULL, 0);
 						}
+					} else {
+						free(new_command);
 					}
 				}
 		  	}
@@ -330,9 +329,14 @@ char *where(char *command, struct pathelement *pathlist ) {
 	return cp;
 } /* where() */
 
+/*
+ * list
+ *
+ * returns: voidd
+ * params: char
+ * purpose: given a string and prints out the list of file paths
+ * */
 void list ( char *dir ) {
-  /* see man page for opendir() and readdir() and print out filenames for
-  the directory passed */
 	DIR *dir2;
 	struct dirent *de;
 	dir2 = opendir(dir);
@@ -346,10 +350,25 @@ void list ( char *dir ) {
 	}
 } /* list() */
 
+/*
+ * printexecuting 
+ *
+ * return: void
+ * args: char *
+ * purpose: prints command executing
+ * */
 void printexecuting(char * command) {
 	printf("Executing built-in [%s] command\n", command);
 }
 
+/*
+ * execcom
+ *
+ * returns: void
+ * params: char *, char **, int 
+ * purpose: given a commandpath this function checks if the command is found
+ * if in the child or if in the parent and executes the command accordingly
+ * */
 void execcom(char *command, char ** args, int status) {
 	if (command == NULL) {
 		printf("\nCommand %s not found", args[0]);
@@ -365,6 +384,15 @@ void execcom(char *command, char ** args, int status) {
 	}
 }
 
+/*
+ * findWildCard
+ * 
+ * returns: int
+ * params: char, array
+ *
+ * purpose: takes in a character and an array. returning the index of the character in array.
+ *  if its not in the array (wildcard) then return -1 
+ * */
 int findWildCard(char w_card, char **args) {
 	int num = 0;
 	char *found;
@@ -380,6 +408,16 @@ int findWildCard(char w_card, char **args) {
 	
 }
 
+/*
+ * glob_exec
+ *
+ * return: void
+ * params: int, char pointer, list, char **, struct glob (import), int
+ *
+ * purpose: takes in the char_index, the path list, command path, an array, glob type and status
+ *  this function creates space for all the matches and traverses through them and allots mem to all
+ *  the matches. the command is executed. the command path and glob is freed. 
+ * */
 void glob_exec(int char_ind, char *commandpath, struct pathelement *pathlist, char **args, glob_t globbuf, int status) {
 	globbuf.gl_offs = char_ind;
 	glob(args[char_ind], GLOB_DOOFFS, NULL, &globbuf);
