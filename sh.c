@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <glob.h>
 #include "sh.h"
 
 int sh( int argc, char **argv, char **envp ){
@@ -23,6 +24,7 @@ int sh( int argc, char **argv, char **envp ){
 	struct passwd *password_entry;
 	char *homedir;
 	struct pathelement *pathlist;
+	glob_t globbuf; //https://man7.org/linux/man-pages/man3/glob.3.html
 	
 	uid = getuid();
 	password_entry = getpwuid(uid);               /* get passwd info */
@@ -38,7 +40,7 @@ int sh( int argc, char **argv, char **envp ){
   	
 	/* Put PATH into a linked list */
   	pathlist = get_path();
-  	while ( go ){
+  	while ( go ) {
 	  	//print your prompt
 	  	printf("\n%s [%s]>", prompt, pwd);
 	  	/* get command line and process */
@@ -62,38 +64,42 @@ int sh( int argc, char **argv, char **envp ){
 		}
 
 	  /* check for each built in command and implement */
-	 	if(commandline != NULL) {
-		  	if (strcmp(commandline, "exit") == 0) {
-			  	printf("%s\n", commandline);
+	 	if(command != NULL) {
+		  	if (strcmp(command, "exit") == 0) {
+			  	printexecuting(command);
 			  	break;
-		  	} else if (strcmp(command, "which") == 0) {
-			  	printf("%s\n", command);
-				for (int i=1;args[i] != NULL; i++) {
-					commandpath = which(args[i],pathlist);
-					printf("\n%s",commandpath);
+		  	} else if ((command[0] == '/') || 
+					(command[0] == '.') && 
+					(command[1] == '/') || 
+					((command[1] == '.') && 
+					(command[2] == '/'))) {
+				
+				if (access(command, X_OK) == -1) {
+					perror("Error");
+				} else {
+					printexecuting(command);
+					execcom(command, args, status);
+				}
+			} else if (strcmp(command, "which") == 0) {
+			  	printexecuting(command);
+				for (int i = 1; args[i] != NULL; i++) {
+					commandpath = which(args[i], pathlist);
+					printf("\n%s", commandpath);
 					free(commandpath);
 				}
-				/**
-				 * Which:
-				 * - finding a command to execute
-				 **/
 		  	} else if (strcmp(command, "where") == 0) {
-			  	printf("%s\n", command);
-				/**
-				 * Where:
-				 * - reports all instances of the command
-				 *   in the path
-				 * **/
+			  	printexecuting(command);
 				for (int i = 1; args[i] != NULL; i++) {
 					commandpath = where(args[i], pathlist);
 					free(commandpath);
 				}
-			} else if (strcmp(command,"pwd")==0) {
+			} else if (strcmp(command,"pwd") == 0) {
+				printexecuting(command);
 				ptr = getcwd(NULL,0);
 				printf("CWD: [%s]\n",ptr);
 				free(ptr);
 		  	} else if (strcmp(command, "cd") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				if (args[1] == NULL) {
 					strcpy(owd, pwd);
 					strcpy(pwd, homedir);
@@ -166,7 +172,7 @@ int sh( int argc, char **argv, char **envp ){
 					printf("\nsetenv: Sorry, too many arguments. Please try again.");
 				}
 			} else if (strcmp(command, "list") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				if (args[1] == NULL) {
 					printf("Nothing in current directory");
 				} else {
@@ -178,10 +184,11 @@ int sh( int argc, char **argv, char **envp ){
 					}
 				}	
 			} else if(strcmp(command, "pid") == 0) {
-				printf("%s\n", command);
+				printexecuting(command);
 				//https://man7.org/linux/man-pages/man2/getpid.2.html
 				printf("\nPID: %d", getpid());
 			} else if (strcmp(command, "kill") == 0) {
+				printexecuting(command);
 				//https://man7.org/linux/man-pages/man2/kill.2.html
 				if (args[1] == NULL) {
 					printf("\nNot enough arguments for kill");
@@ -210,31 +217,56 @@ int sh( int argc, char **argv, char **envp ){
 							pathlist = NULL;
 						}
 						if (kill(t_id, abs(signal)) == -1) {
-							printf("\nERROR\n");
+							perror("ERROR");
 						}
 					}else{
 						printf("\nInvalid Arguments");
 					}
 				}	
+			} else if (strstr(command, "*") != NULL) {
+				int star = findWildCard('*', args);
+				glob_exec(star, commandpath, pathlist, args, globbuf, status);
+				printf("star globs");
+			} else if (strstr(command, "?") != NULL) {
+				int quest = findWildCard('?', args);
+                                glob_exec(quest, commandpath, pathlist, args, globbuf, status);
+                                printf("question globs");
 			} else {
-			  	return 0;
+				if (which(args[0], pathlist) == NULL) {
+					printf("Command %s not found", args[0]);
+				} else {
+					printexecuting(command);
+					char *new_command;
+					new_command = args[0];
+					char *temp = where(args[0], pathlist);
+					args[0] = temp;
+					
+					if (temp != NULL) {
+						if (fork() == 0) {
+							execve(temp, args, NULL);
+							free(new_command);
+							exit(1);
+						} else {
+							waitpid(pid, NULL, 0);
+						}
+					} else {
+						free(new_command);
+					}
+				}
 		  	}
 	  	}
-     /*  else  program to exec */
-       /* find it */
-       /* do fork(), execve() and waitpid() */
-
-      /* else */
-        /* fprintf(stderr, "%s: Command not found.\n", args[0]); */
-  }
+	}
+	
 	free(owd);
 	free(pwd);
-	free(prompt);
 	free(args);
 	free(commandline);
+	
 	pathdelete(&pathlist);
-	pathlist=NULL;
-  return 0;
+	pathlist = NULL;
+	
+	exit(0);
+	return 0;
 } /* sh() */
 
 char *which(char *command, struct pathelement *pathlist ) {
@@ -283,9 +315,11 @@ char *where(char *command, struct pathelement *pathlist ) {
 		} else if (access(pathBuffer, X_OK) != -1 && target == 0) {
 			target = 1;
 			int len = strlen(pathBuffer);
+			
 			cp = calloc(len + 1, sizeof(char));
 			strncpy(cp, pathBuffer, len);
 			printf("\n%s", cp);
+			
 			pathlist = pathlist->next;
 		} else if (access(pathBuffer, X_OK) != -1) {
 			printf("\n%s", pathBuffer);
@@ -295,9 +329,14 @@ char *where(char *command, struct pathelement *pathlist ) {
 	return cp;
 } /* where() */
 
+/*
+ * list
+ *
+ * returns: voidd
+ * params: char
+ * purpose: given a string and prints out the list of file paths
+ * */
 void list ( char *dir ) {
-  /* see man page for opendir() and readdir() and print out filenames for
-  the directory passed */
 	DIR *dir2;
 	struct dirent *de;
 	dir2 = opendir(dir);
@@ -311,7 +350,94 @@ void list ( char *dir ) {
 	}
 } /* list() */
 
-void printEnv(char **envp) {
+/*
+ * printexecuting 
+ *
+ * return: void
+ * args: char *
+ * purpose: prints command executing
+ * */
+void printexecuting(char * command) {
+	printf("Executing built-in [%s] command\n", command);
+}
+
+/*
+ * execcom
+ *
+ * returns: void
+ * params: char *, char **, int 
+ * purpose: given a commandpath this function checks if the command is found
+ * if in the child or if in the parent and executes the command accordingly
+ * */
+void execcom(char *command, char ** args, int status) {
+	if (command == NULL) {
+		printf("\nCommand %s not found", args[0]);
+	} else {
+		if (fork() == 0) {
+			execve(command, args, NULL);
+			exit(0);
+		} else {
+			while (!WIFEXITED(status) && !WIFSIGNALED(status)) {
+				waitpid(pid, &status, WUNTRACED);
+			}
+		}
+	}
+}
+
+/*
+ * findWildCard
+ * 
+ * returns: int
+ * params: char, array
+ *
+ * purpose: takes in a character and an array. returning the index of the character in array.
+ *  if its not in the array (wildcard) then return -1 
+ * */
+int findWildCard(char w_card, char **args) {
+	int num = 0;
+	char *found;
+
+	while (args[num]) {
+		found = strchr(args[num], w_card);
+		if (found != NULL) {
+			return num;
+		}
+		num++;
+	}
+	return -1;
+	
+}
+
+/*
+ * glob_exec
+ *
+ * return: void
+ * params: int, char pointer, list, char **, struct glob (import), int
+ *
+ * purpose: takes in the char_index, the path list, command path, an array, glob type and status
+ *  this function creates space for all the matches and traverses through them and allots mem to all
+ *  the matches. the command is executed. the command path and glob is freed. 
+ * */
+void glob_exec(int char_ind, char *commandpath, struct pathelement *pathlist, char **args, glob_t globbuf, int status) {
+	globbuf.gl_offs = char_ind;
+	glob(args[char_ind], GLOB_DOOFFS, NULL, &globbuf);
+	for (int i = 0; i < char_ind; i++) {
+		globbuf.gl_pathv[i] = calloc(sizeof(char), strlen(args[i]) + 1);
+		strcpy(globbuf.gl_pathv[i], args[i]);
+	}
+	commandpath = which(globbuf.gl_pathv[0], pathlist);
+	execcom(commandpath, globbuf.gl_pathv, status);
+	free(commandpath);
+
+	//free glob
+	while (char_ind) {
+		free(globbuf.gl_pathv[char_ind]);
+		char_ind--;
+	}
+	globfree(&globbuf);
+}
+
+void printEnv(char ** envp) {
 	/*
 	 * printEnv: prints the environment (either a given one or the current one)
 	 * params: char **envp: the environment pointer
