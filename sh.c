@@ -224,45 +224,40 @@ int sh( int argc, char **argv, char **envp ){
 					}
 				}	
 			} else {
-				/**
-				 * Execute command not from cases
-				 * or
-				 * Wildcards
-				 * */
-				if (which(args[0], pathlist) == NULL) {
-					printf("Command %s not found", args[0]);
+				int q_mark = findWildCard('?', args);
+				int s_mark = findWildCard('*', args);
+				if (strcmp(command, "ls") == 0 && q_mark != -1) {
+					glob_exec(q_mark, commandpath, pathlist, args, globbuf, status);
+				} else if (strcmp(command, "ls") == 0  && s_mark != -1) {
+					glob_exec(s_mark, commandpath, pathlist, args, globbuf, status);
 				} else {
-					//execute command - not from cases
-					printexecuting(command);
-					char *new_command;
-					new_command = args[0];
-					char *temp = where(args[0], pathlist);
-					args[0] = temp;
-					
-					//wildcard attempt
-					int q_mark = findWildCard('?', args);
-                                        int s_mark = findWildCard('*', args);
-					
-					if (temp != NULL) {
-						if (fork() == 0) {
-							printexecuting(new_command);
-							execve(temp, args, NULL);
-							free(new_command);
-							exit(1);
-						} else {
-							waitpid(pid, NULL, 0);
-						}
-					} else if (strcmp(command, "ls") == 0 && q_mark != -1) {
-						glob_exec(q_mark, commandpath, pathlist, args, globbuf, status);
-					} else if (strcmp(command, "ls") == 0 && s_mark != -1) {
-						glob_exec(s_mark, commandpath, pathlist, args, globbuf, status);
+					if (which(args[0], pathlist) == NULL) {
+						printf("Command %s not found", args[0]);
 					} else {
-						free(new_command);
+						printexecuting(command);
+						char *new_command;
+						new_command = args[0];
+						char *temp = where(args[0], pathlist);
+						args[0] = temp;
+					
+						if (temp != NULL) {
+							if (fork() == 0) {
+								printexecuting(new_command);
+								execve(temp, args, NULL);
+								free(new_command);
+								exit(1);
+							} else {
+								waitpid(pid, NULL, 0);
+							}
+						} else {
+							free(new_command);
+						}
 					}
 				}
 		  	}
 	  	}
 	}
+	
 	free(owd);
 	free(pwd);
 	free(args);
