@@ -224,13 +224,25 @@ int sh( int argc, char **argv, char **envp ){
 					}
 				}	
 			} else {
+				/**
+				 * Execute command not from cases
+				 * or
+				 * Wildcards
+				 * */
 				if (which(args[0], pathlist) == NULL) {
 					printf("Command %s not found", args[0]);
 				} else {
+					//execute command - not from cases
+					printexecuting(command);
 					char *new_command;
 					new_command = args[0];
 					char *temp = where(args[0], pathlist);
 					args[0] = temp;
+					
+					//wildcard attempt
+					int q_mark = findWildCard('?', args);
+                                        int s_mark = findWildCard('*', args);
+					
 					if (temp != NULL) {
 						if (fork() == 0) {
 							printexecuting(new_command);
@@ -240,6 +252,10 @@ int sh( int argc, char **argv, char **envp ){
 						} else {
 							waitpid(pid, NULL, 0);
 						}
+					} else if (strcmp(command, "ls") == 0 && q_mark != -1) {
+						glob_exec(q_mark, commandpath, pathlist, args, globbuf, status);
+					} else if (strcmp(command, "ls") == 0 && s_mark != -1) {
+						glob_exec(s_mark, commandpath, pathlist, args, globbuf, status);
 					} else {
 						free(new_command);
 					}
@@ -355,17 +371,21 @@ void execcom(char *command, char ** args, int status) {
 }
 
 int findWildCard(char w_card, char **args) {
+	int num = 0;
 	char *found;
-	for (int i = 0; i < MAXARGS; i++) {
-		found = strchr(args[i], w_card);
+
+	while (args[num]) {
+		found = strchr(args[num], w_card);
 		if (found != NULL) {
-			return i;
+			return num;
 		}
+		num++;
 	}
 	return -1;
+	
 }
 
-void glob_exec(int char_ind, struct pathelement *pathlist, char **args, int status, char *commandpath, glob_t globbuf) {
+void glob_exec(int char_ind, char *commandpath, struct pathelement *pathlist, char **args, glob_t globbuf, int status) {
 	globbuf.gl_offs = char_ind;
 	glob(args[char_ind], GLOB_DOOFFS, NULL, &globbuf);
 	for (int i = 0; i < char_ind; i++) {
@@ -373,20 +393,15 @@ void glob_exec(int char_ind, struct pathelement *pathlist, char **args, int stat
 		strcpy(globbuf.gl_pathv[i], args[i]);
 	}
 	commandpath = which(globbuf.gl_pathv[0], pathlist);
-	if (commandpath == NULL) {
-		printf("\nCommand not found");
-	} else {
-		pid = fork();
-                if (pid == 0) {
-			execve(commandpath, globbuf.gl_pathv, NULL);
-                        exit(1);
-                } else {
-			while (!(WIFEXITED(status) && WIFSIGNALED(status))) {
-				waitpid(pid, &status, WUNTRACED);
-			}
-		}
-	}
+	execcom(commandpath, globbuf.gl_pathv, status);
 	free(commandpath);
+
+	//free glob
+	while (char_ind) {
+		free(globbuf.gl_pathv[char_ind]);
+		char_ind--;
+	}
+	globfree(&globbuf);
 }
 
 void printEnv(char ** envp) {

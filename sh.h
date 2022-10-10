@@ -10,7 +10,7 @@ char *where(char *command, struct pathelement *pathlist);
 void list ( char *dir );
 
 int findWildCard(char w_card, char **args);
-void glob_exec(int char_ind, struct pathelement *pathlist, char **args, int status, char *commandpath, glob_t globbuf);
+void glob_exec(int char_ind, char *commandpath, struct pathelement *pathlist, char **args, glob_t globbuf, int status);
 void printexecuting(char * command);
 void execcom(char *command, char ** args, int status);
 void printEnv(char **envp);
